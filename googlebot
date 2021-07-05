@@ -21,6 +21,7 @@ let btnK = document.getElementsByName('btnK')[0];
 let links = document.links;
 
 if (btnK !== undefined) {
+  document.getElementsByName('q')[0].value = keyword;
   document.getElementsByName('btnK')[0].click();
 } else {
     for (let i=0; i<links.length; i++ ) {
