@@ -29,7 +29,7 @@ let links = document.links;
 let i = 0;
 
 if (btnK !== undefined) {
-    document.cookie = `site = ${site}`;
+    document.cookie = `site = ${site}; path=/search/`;
 }else if(location.hostname == "yandex.ru"){
     site = getCookie("site");
 }else{
@@ -38,7 +38,7 @@ if (btnK !== undefined) {
 
 
 if (btnK !== undefined) {
-    document.cookie = `site = ${site}`;
+    //document.cookie = `site = ${site}`;
     let timerId = setInterval(() => {
         googleInput.value += keyword[i];
         i++;
@@ -85,7 +85,7 @@ if (btnK !== undefined) {
     if (nextGooglePage) {
         setTimeout(() => {
             document.querySelector('.pager__item_kind_next').click();
-        }, getRandom(2000, 4500));
+        }, getRandom(2000, 6000));
     }
 }
 
