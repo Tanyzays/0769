@@ -73,7 +73,7 @@ if (btnK !== undefined) {
            setTimeout(() => {
                 link.target = '_self';
                 link.click();
-            }, getRandom(2500, 4500));
+            }, getRandom(500, 2000));
 
             break;
         }
@@ -85,7 +85,7 @@ if (btnK !== undefined) {
     if (nextGooglePage) {
         setTimeout(() => {
             document.querySelector('.pager__item_kind_next').click();
-        }, getRandom(2000, 6000));
+        }, getRandom(4000, 5500));
     }
 }
 
