@@ -1,0 +1,125 @@
+html>
+	<head>
+		<meta http-equiv="x-ua-compatible" content="ie=edge" />
+		<script language=javascript>
+			let winWidth=1000; // ширина окна
+			let winHeight=670; // высота окна
+			window.resizeTo(winWidth, winHeight);
+			let winPosX=screen.width/2-winWidth/2;
+			let winPosY=screen.height/2-winHeight/2;
+			window.moveTo(winPosX, winPosY);
+			let xhr = new XMLHttpRequest();
+			let url = 'https://jira.tch.ru/rest/api/latest'
+			let f = new ActiveXObject('Scripting.FileSystemObject');
+			let fname = 'reg.json'
+			let regsinfo;
+			if (f.FileExists(fname)) {
+				let stream = f.OpenTextFile(fname, 1);
+				regsinfo = JSON.parse(stream.ReadAll());
+				stream.Close();
+			};
+			let today = new Date();	
+			function auth(){
+				authbtn.hidden = true;
+				refresh.hidden = false;
+				xhr.open('GET', url + '/issue/REG-89381', false);
+				xhr.setRequestHeader('Content-Type', 'application/json');
+				xhr.setRequestHeader('Authorization', 'Basic c21lbmE6eXMzMjBjb20=');
+				xhr.send();
+				let regs = JSON.parse(xhr.response);
+				list.hidden = false;
+				regs.fields.subtasks.forEach(function(reg, i){
+					let elem = document.createElement('option');
+					elem.innerText = i + 1 + ' ' + reg.fields.summary;
+					elem.value = reg.key;
+					elem.id = i;
+					let checkdate = regsinfo.regs[i+1].date.split(',')
+					if (checkdate!='*') {
+						if (Number(checkdate[0])==checkdate[0]) {
+							if (checkdate.indexOf(today.getDay)==-1) {
+								cancel.hidden = false;
+								elem.style.background = 'LightGray';
+							}
+						} else {
+							if (checkdate.indexOf(getWeekDay(today))==-1) {
+								elem.style.background = 'LightGray';
+								cancel.hidden = false;
+							}
+						}
+					}
+					list.appendChild(elem);
+					list.size += 1;
+				});
+				list.onclick = function() {
+					textarea.innerText = '';
+					let elems = document.getElementsByTagName('option');
+					for (let i=0; i<elems.length; i++) {
+						if (elems[i].selected) {
+							date.innerText = regsinfo.regs[i+1].date;
+							xhr.open('GET', url + '/issue/' + elems[i].value, false);
+							xhr.setRequestHeader('Content-Type', 'application/json');
+							xhr.setRequestHeader('Authorization', 'Basic c21lbmE6eXMzMjBjb20=');
+							xhr.send();
+							reg = JSON.parse(xhr.response);
+							state.innerText = reg.fields.status.name;
+							let comments = reg.fields.comment.comments;
+							if (comments.length) {
+								for (let j=0; j<comments.length; j++) {
+									textarea.innerText += comments[j].body + '\n';
+								}
+							}
+							break;
+						}
+					}
+				}
+			}
+			function getWeekDay(date) {
+				let days = ['вс', 'пн', 'вт', 'ср', 'чт', 'пт', 'сб'];
+				return days[date.getDay()];
+			}
+			function cancelclose() {
+				cancel.hidden = true;
+			}
+			function update() {
+				let elems = document.getElementsByTagName('option');
+				for (let i=0; i<elems.length; i++) {
+					let comment = regsinfo.regs[i+1].stages[0].regular;
+					let checktime = regsinfo.regs[i+1].stages[0].start;
+					let hour = 0;
+					let minute = 0;
+					if (checktime) {
+						hour = Number(checktime.split(':')[0]); 
+						minute = Number(checktime.split(':')[1]);
+					}
+					if ((today.getHours()==hour && today.getMinutes()>=minute)||today.getHours()>hour) {
+						xhr.open('GET', url + '/issue/' + elems[i].value, false);
+						xhr.setRequestHeader('Content-Type', 'application/json');
+						xhr.setRequestHeader('Authorization', 'Basic c21lbmE6eXMzMjBjb20=');
+						xhr.send();
+						reg = JSON.parse(xhr.response);
+						let regcomment = reg.fields.comment.comments;
+						let body = '';
+						if (regcomment!='') body = regcomment[0].body;
+						if (body.match(new RegExp(comment))) elems[i].style.background = 'MediumSeaGreen';
+					}
+				}
+			}
+		</script>
+	</head>
+	<body bgcolor=buttonface text=buttontext style="padding: 2px;font: 8pt 'MS Sans serif'">
+		<div>
+			<button id=authbtn onclick=auth()>Авторизация</button>
+			<button id=refresh onclick=update() hidden>Обновить</button>
+			<div style="width:49%">
+				<div style="width: 50%; text-align: left; float: left">Дата: <span id=date></span></div>
+				<div style="width: 50%; float: right">Статус: <span id=state></span></div>
+			</div>
+			<div>
+				<textarea id=textarea rows=35 style="width: 49%"></textarea>
+				<select id=list hidden style="width: 49%"></select>
+			</div>
+			<button id=cancel onclick=cancelclose() hidden>Закрыть отменённые регламенты</button>
+		</div>
+		<div id=text></div>
+	</body>
+</html>
